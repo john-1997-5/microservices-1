@@ -50,7 +50,15 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException("No user found with id: " + id));
 
         EmployeeDto employeeDto = mapper.map(employee, EmployeeDto.class);
-        return null;
+
+        // REST call
+        String url = "http://localhost:8080/api/departments/" + employee.getDepartmentCode();
+        ResponseEntity<DepartmentDto> responseEntity = restTemplate
+                .getForEntity(url, DepartmentDto.class);
+        DepartmentDto departmentDto = responseEntity.getBody();
+
+        return new ApiResponseDto(employeeDto, departmentDto);
+
     }
 
     @Override
