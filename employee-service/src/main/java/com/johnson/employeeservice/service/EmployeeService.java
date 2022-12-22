@@ -1,5 +1,6 @@
 package com.johnson.employeeservice.service;
 
+import com.johnson.employeeservice.dto.ApiResponseDto;
 import com.johnson.employeeservice.dto.EmployeeDto;
 import com.johnson.employeeservice.entity.Employee;
 
@@ -12,7 +13,7 @@ public interface EmployeeService {
     List<EmployeeDto> getAllEmployees();
 
     //Employee getEmployeeById(long id);
-    EmployeeDto getEmployeeById(long id);
+    ApiResponseDto getEmployeeById(long id);
 
     EmployeeDto updateEmployee(EmployeeDto employee);
 

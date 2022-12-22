@@ -1,5 +1,7 @@
 package com.johnson.employeeservice.service.impl;
 
+import com.johnson.employeeservice.dto.ApiResponseDto;
+import com.johnson.employeeservice.dto.DepartmentDto;
 import com.johnson.employeeservice.dto.EmployeeDto;
 import com.johnson.employeeservice.exception.EmailAlreadyExistsException;
 import com.johnson.employeeservice.exception.ResourceNotFoundException;
@@ -8,7 +10,9 @@ import com.johnson.employeeservice.repository.EmployeeRepository;
 import com.johnson.employeeservice.service.EmployeeService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +23,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final ModelMapper mapper;
+    private final RestTemplate restTemplate;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -40,10 +45,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeDto getEmployeeById(long id) {
+    public ApiResponseDto getEmployeeById(long id) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No user found with id: " + id));
-        return mapper.map(employee, EmployeeDto.class);
+
+        EmployeeDto employeeDto = mapper.map(employee, EmployeeDto.class);
+        return null;
     }
 
     @Override
@@ -54,6 +61,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setFirstName(employeeDto.getFirstName());
         employee.setLastName(employeeDto.getLastName());
         employee.setEmail(employeeDto.getEmail());
+        employee.setDepartmentCode(employeeDto.getDepartmentCode());
 
         Employee updatedEmployee = employeeRepository.save(employee);
 
