@@ -13,6 +13,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final ModelMapper mapper;
     private final RestTemplate restTemplate;
+    private final WebClient webClient;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -53,9 +55,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // REST call
         String url = "http://localhost:8080/api/departments/" + employee.getDepartmentCode();
-        ResponseEntity<DepartmentDto> responseEntity = restTemplate
+/*        ResponseEntity<DepartmentDto> responseEntity = restTemplate
                 .getForEntity(url, DepartmentDto.class);
-        DepartmentDto departmentDto = responseEntity.getBody();
+        DepartmentDto departmentDto = responseEntity.getBody();*/
+
+        DepartmentDto departmentDto = webClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(DepartmentDto.class)
+                .block(); // to make it sync
 
         return new ApiResponseDto(employeeDto, departmentDto);
 
