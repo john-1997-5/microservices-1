@@ -7,6 +7,7 @@ import com.johnson.employeeservice.exception.EmailAlreadyExistsException;
 import com.johnson.employeeservice.exception.ResourceNotFoundException;
 import com.johnson.employeeservice.entity.Employee;
 import com.johnson.employeeservice.repository.EmployeeRepository;
+import com.johnson.employeeservice.service.APIClient;
 import com.johnson.employeeservice.service.EmployeeService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -26,6 +27,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final ModelMapper mapper;
     private final RestTemplate restTemplate;
     private final WebClient webClient;
+    private final APIClient apiClient;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -59,11 +61,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .getForEntity(url, DepartmentDto.class);
         DepartmentDto departmentDto = responseEntity.getBody();*/
 
-        DepartmentDto departmentDto = webClient.get()
+/*        DepartmentDto departmentDto = webClient.get()
                 .uri(url)
                 .retrieve()
                 .bodyToMono(DepartmentDto.class)
-                .block(); // to make it sync
+                .block(); // to make it sync*/
+
+        DepartmentDto departmentDto = apiClient.getDepartmentByCode(employeeDto.getDepartmentCode());
 
         return new ApiResponseDto(employeeDto, departmentDto);
 
