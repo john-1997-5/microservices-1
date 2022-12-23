@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: DEPARTMENT-SERVICE
   datasource:
     url: jdbc:mysql://localhost:3306/department_db?useSSL=false&serverTimezone=GMT
     username: root
@@ -19,8 +21,13 @@ spring:
     hibernate:
       ddl-auto: update
 
+
 logging:
   level:
     org:
       springframework:
         security: DEBUG
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/ # department-service se registrará en este servidor (eureka server)
