@@ -3,18 +3,18 @@ package com.johnson.employeeservice.service.impl;
 import com.johnson.employeeservice.dto.ApiResponseDto;
 import com.johnson.employeeservice.dto.DepartmentDto;
 import com.johnson.employeeservice.dto.EmployeeDto;
+import com.johnson.employeeservice.dto.OrganizationDto;
 import com.johnson.employeeservice.exception.EmailAlreadyExistsException;
 import com.johnson.employeeservice.exception.ResourceNotFoundException;
 import com.johnson.employeeservice.entity.Employee;
 import com.johnson.employeeservice.repository.EmployeeRepository;
-import com.johnson.employeeservice.service.APIClient;
+import com.johnson.employeeservice.service.DepartmentAPIClient;
 import com.johnson.employeeservice.service.EmployeeService;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import com.johnson.employeeservice.service.OrganizationAPIClient;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -31,7 +31,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final ModelMapper mapper;
     private final RestTemplate restTemplate;
     private final WebClient webClient;
-    private final APIClient apiClient;
+    private final DepartmentAPIClient departmentAPIClient;
+    private final OrganizationAPIClient organizationAPIClient;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -74,10 +75,10 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .block(); // to make it sync*/
 
         log.info(">> intentando llamar al micro department-service...");
-        DepartmentDto departmentDto = apiClient.getDepartmentByCode(employeeDto.getDepartmentCode());
+        DepartmentDto departmentDto = departmentAPIClient.getDepartmentByCode(employeeDto.getDepartmentCode());
+        OrganizationDto organizationDto = organizationAPIClient.getOrganizationByCod(employeeDto.getOrganizationCode());
         log.info(">>>> comunicación con department-service successful!");
-        return new ApiResponseDto(employeeDto, departmentDto);
-
+        return new ApiResponseDto(employeeDto, departmentDto, organizationDto);
     }
 
     private ApiResponseDto getDefaultDepartment(long id, Exception e) {
@@ -93,7 +94,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         departmentDto.setDepartmentDescription("Default department for losers");
         departmentDto.setDepartmentCode("DFLT001");
 
-        return new ApiResponseDto(employeeDto, departmentDto);
+        OrganizationDto organizationDto = new OrganizationDto();
+        organizationDto.setOrganizationName("DFLT Organization");
+        organizationDto.setOrganizationDescription("Default organization for losers");
+        organizationDto.setOrganizationCode("DFLT_ORG");
+
+        return new ApiResponseDto(employeeDto, departmentDto, organizationDto);
 
     }
 
@@ -106,6 +112,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setLastName(employeeDto.getLastName());
         employee.setEmail(employeeDto.getEmail());
         employee.setDepartmentCode(employeeDto.getDepartmentCode());
+        employee.setOrganizationCode(employeeDto.getOrganizationCode());
 
         Employee updatedEmployee = employeeRepository.save(employee);
 

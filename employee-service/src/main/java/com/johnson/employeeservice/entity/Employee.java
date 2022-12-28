@@ -23,4 +23,6 @@ public class Employee {
     private String email;
 
     private String departmentCode;
+
+    private String organizationCode;
 }
