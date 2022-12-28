@@ -10,7 +10,9 @@ import com.johnson.employeeservice.repository.EmployeeRepository;
 import com.johnson.employeeservice.service.APIClient;
 import com.johnson.employeeservice.service.EmployeeService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
@@ -49,7 +52,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .collect(Collectors.toList());
     }
 
-    @CircuitBreaker(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
+    //@CircuitBreaker(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
+    @Retry(name="${spring.application.name}", fallbackMethod = "getDefaultDepartment")
     @Override
     public ApiResponseDto getEmployeeById(long id) {
         Employee employee = employeeRepository.findById(id)
@@ -69,13 +73,15 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .bodyToMono(DepartmentDto.class)
                 .block(); // to make it sync*/
 
+        log.info(">> intentando llamar al micro department-service...");
         DepartmentDto departmentDto = apiClient.getDepartmentByCode(employeeDto.getDepartmentCode());
-
+        log.info(">>>> comunicación con department-service successful!");
         return new ApiResponseDto(employeeDto, departmentDto);
 
     }
 
     private ApiResponseDto getDefaultDepartment(long id, Exception e) {
+        log.info(">> comunicación fallida, estoy dentro del fallback method...");
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No user found with id: " + id));
 
