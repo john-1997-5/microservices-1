@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 public class ApiResponseDto {
     private EmployeeDto employee;
-    private DepartmentDto departmentDto;
-    private OrganizationDto organizationDto;
+    private DepartmentDto department;
+    private OrganizationDto organization;
 }
