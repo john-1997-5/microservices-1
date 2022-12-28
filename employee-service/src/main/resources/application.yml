@@ -33,3 +33,33 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+# actuator for CIRCUIT BREAKER
+management:
+  endpoint:
+    health:
+      enabled: true # no haría falta, ya que por defecto se muestra únicamente este endpoint
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+
+# Circuit breaker configuration
+resilience4j:
+  circuitbreaker:
+#    configs:
+#      default:
+#        registerHealthIndicator: true
+    instances:
+      EMPLOYEE-SERVICE:
+        registerHealthIndicator: true
+        failureRateThreshold: 50 # 50%
+        minimumNumberOfCalls: 5
+        # CB automatically move from OPEN to HALF_OPEN after wait 5 seconds
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED
+

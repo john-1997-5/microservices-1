@@ -9,6 +9,7 @@ import com.johnson.employeeservice.entity.Employee;
 import com.johnson.employeeservice.repository.EmployeeRepository;
 import com.johnson.employeeservice.service.APIClient;
 import com.johnson.employeeservice.service.EmployeeService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .collect(Collectors.toList());
     }
 
+    @CircuitBreaker(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
     @Override
     public ApiResponseDto getEmployeeById(long id) {
         Employee employee = employeeRepository.findById(id)
@@ -68,6 +70,22 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .block(); // to make it sync*/
 
         DepartmentDto departmentDto = apiClient.getDepartmentByCode(employeeDto.getDepartmentCode());
+
+        return new ApiResponseDto(employeeDto, departmentDto);
+
+    }
+
+    private ApiResponseDto getDefaultDepartment(long id, Exception e) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No user found with id: " + id));
+
+        EmployeeDto employeeDto = mapper.map(employee, EmployeeDto.class);
+
+        // instead of REST call, I set a default DepartmentDto
+        DepartmentDto departmentDto = new DepartmentDto();
+        departmentDto.setDepartmentName("DFLT Department");
+        departmentDto.setDepartmentDescription("Default department for losers");
+        departmentDto.setDepartmentCode("DFLT001");
 
         return new ApiResponseDto(employeeDto, departmentDto);
 
